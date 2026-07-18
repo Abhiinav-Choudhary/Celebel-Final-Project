@@ -6,7 +6,7 @@ import os
 import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
-import config
+import project_config as config
 
 
 def load_and_preprocess_image(image_path, target_size=config.IMG_SIZE):

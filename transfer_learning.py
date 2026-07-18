@@ -21,7 +21,7 @@ from tensorflow.keras.callbacks import (
     EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
 )
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-import config
+import project_config as config
 from feature_extractor import extract_embeddings, save_embeddings
 
 

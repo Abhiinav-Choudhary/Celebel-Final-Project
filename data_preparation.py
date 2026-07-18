@@ -13,8 +13,8 @@ import random
 import pandas as pd
 import numpy as np
 from PIL import Image
-import config
-import utils
+import project_config as config
+import project_utils as utils
 
 
 def download_dataset():

@@ -14,8 +14,8 @@ from tensorflow.keras.applications.resnet50 import preprocess_input
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import GlobalAveragePooling2D
 from PIL import Image
-import config
-import utils
+import project_config as config
+import project_utils as utils
 
 
 def build_baseline_extractor():

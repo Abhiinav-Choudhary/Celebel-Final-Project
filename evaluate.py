@@ -14,7 +14,7 @@ import matplotlib
 matplotlib.use("Agg")  # Non-interactive backend for saving plots
 import matplotlib.pyplot as plt
 from collections import defaultdict
-import config
+import project_config as config
 from feature_extractor import load_embeddings
 from similarity_search import CosineSimilaritySearch
 

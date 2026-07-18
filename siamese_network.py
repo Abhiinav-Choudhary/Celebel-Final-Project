@@ -24,7 +24,7 @@ from tensorflow.keras.layers import (
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras import backend as K
 from PIL import Image
-import config
+import project_config as config
 from feature_extractor import extract_embeddings, save_embeddings
 
 

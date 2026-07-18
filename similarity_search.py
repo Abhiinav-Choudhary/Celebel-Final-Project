@@ -11,7 +11,7 @@ import os
 import time
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
-import config
+import project_config as config
 from feature_extractor import load_embeddings
 
 

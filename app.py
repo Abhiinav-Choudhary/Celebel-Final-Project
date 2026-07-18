@@ -16,12 +16,12 @@ from PIL import Image
 import streamlit as st
 import tensorflow as tf
 
-import config
+import project_config as config
 from feature_extractor import build_baseline_extractor, load_image_resnet
 from transfer_learning import build_finetuned_model, build_embedding_extractor
 from siamese_network import build_siamese_model
 from similarity_search import CosineSimilaritySearch, FAISSSearch
-from utils import load_image_for_display
+from project_utils import load_image_for_display
 
 # --- Page Configuration ---
 st.set_page_config(
