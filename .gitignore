@@ -1,0 +1,10 @@
+__pycache__/
+.venv/
+venv/
+env/
+models/
+embeddings/
+data/
+plots/
+*.pyc
+.DS_Store
