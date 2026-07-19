@@ -258,7 +258,7 @@ def plot_training_history(history, save_path=None):
     if save_path:
         plt.savefig(save_path, dpi=150, bbox_inches="tight")
         print(f"Training plot saved to {save_path}")
-    plt.show()
+    # plt.show() - Removed to prevent blocking headless execution
 
 
 def main():

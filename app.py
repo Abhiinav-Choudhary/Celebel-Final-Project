@@ -10,6 +10,7 @@ Usage:
 import os
 import io
 import time
+import base64
 import numpy as np
 import pandas as pd
 from PIL import Image
@@ -19,7 +20,7 @@ import tensorflow as tf
 import project_config as config
 from feature_extractor import build_baseline_extractor, load_image_resnet
 from transfer_learning import build_finetuned_model, build_embedding_extractor
-from siamese_network import build_siamese_model
+from siamese_network import build_embedding_network
 from similarity_search import CosineSimilaritySearch, FAISSSearch
 from project_utils import load_image_for_display
 
@@ -34,76 +35,109 @@ st.set_page_config(
 # Custom CSS for modern, premium look
 st.markdown("""
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Inter:wght@400;500;700&display=swap');
+
     /* Main background */
     .stApp {
-        background-color: #121212;
-        color: #ffffff;
+        background-color: #0f1115;
+        color: #e2e8f0;
+        font-family: 'Inter', sans-serif;
     }
     
     /* Headers */
     h1, h2, h3 {
-        font-family: 'Inter', sans-serif;
-        color: #e0e0e0;
+        font-family: 'Outfit', sans-serif;
+        color: #f8fafc;
+        letter-spacing: -0.5px;
     }
     
     /* Highlight accent */
     .highlight {
-        color: #bb86fc;
-        font-weight: bold;
-    }
-    
-    /* Sidebar */
-    .css-1d391kg, .css-1lcbmhc {
-        background-color: #1e1e1e !important;
+        background: linear-gradient(135deg, #a855f7, #ec4899);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 700;
     }
     
     /* Cards for product results */
     .product-card {
-        background: #1e1e1e;
-        border-radius: 12px;
-        padding: 15px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        margin-bottom: 20px;
-        border: 1px solid #333;
+        background: rgba(30, 41, 59, 0.7);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        margin-bottom: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
     .product-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 15px rgba(187, 134, 252, 0.2);
-        border-color: #bb86fc;
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 12px 30px rgba(168, 85, 247, 0.15);
+        border-color: rgba(168, 85, 247, 0.4);
+    }
+    
+    /* Image inside card */
+    .product-card img {
+        width: 100%;
+        border-radius: 12px;
+        margin: 12px 0;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        transition: transform 0.3s ease;
+    }
+    .product-card:hover img {
+        transform: scale(1.05);
     }
     
     /* Score badges */
     .score-badge {
-        background: linear-gradient(135deg, #bb86fc, #3700b3);
+        background: linear-gradient(135deg, #a855f7, #3b82f6);
         color: white;
-        padding: 4px 8px;
-        border-radius: 12px;
+        padding: 4px 12px;
+        border-radius: 20px;
         font-size: 0.85em;
-        font-weight: bold;
+        font-weight: 600;
         display: inline-block;
         margin-top: 10px;
+        box-shadow: 0 2px 8px rgba(168, 85, 247, 0.4);
     }
     
     /* Category tag */
     .category-tag {
-        background: #333;
-        color: #e0e0e0;
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-size: 0.8em;
+        background: rgba(15, 23, 42, 0.8);
+        color: #cbd5e1;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.75em;
+        font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 8px;
-        display: inline-block;
+        letter-spacing: 1px;
+        align-self: flex-start;
+        border: 1px solid rgba(255, 255, 255, 0.1);
     }
     
-    /* Divider */
-    hr {
-        border-color: #333;
+    /* Query container */
+    .query-container {
+        padding: 20px;
+        background: linear-gradient(145deg, #1e293b, #0f172a);
+        border-radius: 20px;
+        border: 1px solid rgba(255,255,255,0.05);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .query-container img {
+        border-radius: 12px;
+        width: 100%;
     }
 </style>
 """, unsafe_allow_html=True)
+
+def get_image_base64(img_path):
+    """Encode image to base64 for direct HTML embedding."""
+    with open(img_path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode()
 
 
 # --- Global State & Caching ---
@@ -132,13 +166,12 @@ def load_models():
     # 3. Siamese Model
     try:
         if os.path.exists(config.SIAMESE_MODEL_PATH):
-            models["siamese"] = tf.keras.models.load_model(
-                config.SIAMESE_MODEL_PATH,
-                compile=False
-            )
+            models["siamese"] = build_embedding_network()
+            models["siamese"].load_weights(config.SIAMESE_MODEL_PATH)
         else:
             models["siamese"] = None
     except Exception as e:
+        print(f"Error loading Siamese model: {e}")
         models["siamese"] = None
         
     return models
@@ -251,9 +284,15 @@ def main():
         uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
         
         if uploaded_file is not None:
-            # Display query image
-            image = Image.open(uploaded_file)
-            st.image(image, caption="Query Image", use_container_width=True)
+            # Display query image with premium container
+            temp_query_path = os.path.join(config.DATA_DIR, "temp_query.jpg")
+            img_b64 = get_image_base64(temp_query_path)
+            st.markdown(f"""
+            <div class="query-container">
+                <h4 style="margin-top:0; color:#cbd5e1; font-family:'Outfit';">Target Item</h4>
+                <img src="data:image/jpeg;base64,{img_b64}">
+            </div>
+            """, unsafe_allow_html=True)
             
     with col2:
         st.subheader("2. Similar Products")
@@ -288,22 +327,19 @@ def main():
                     r_score = results["scores"][i]
                     
                     with cols[col_idx]:
+                        try:
+                            img_b64 = get_image_base64(r_path)
+                            img_html = f'<img src="data:image/jpeg;base64,{img_b64}">'
+                        except:
+                            img_html = '<div style="color:#ef4444; padding:20px; text-align:center;">Image Missing</div>'
+                            
                         st.markdown(f"""
                         <div class="product-card">
                             <div class="category-tag">{r_cat}</div>
-                        """, unsafe_allow_html=True)
-                        
-                        try:
-                            # Use fixed height for consistency
-                            img = Image.open(r_path)
-                            st.image(img, use_container_width=True)
-                        except:
-                            st.error("Image missing")
-                            
-                        st.markdown(f"""
-                            <div style="margin-top: 10px;">
-                                <span style="font-size: 0.9em; color: #aaa;">ID: {r_id}</span><br>
-                                <div class="score-badge">Similarity: {r_score:.3f}</div>
+                            {img_html}
+                            <div style="width: 100%; text-align: center;">
+                                <span style="font-size: 0.85em; color: #94a3b8; font-family: monospace;">ID: {r_id}</span><br>
+                                <div class="score-badge">Match: {r_score:.3f}</div>
                             </div>
                         </div>
                         """, unsafe_allow_html=True)

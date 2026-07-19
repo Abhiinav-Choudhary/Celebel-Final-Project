@@ -102,7 +102,8 @@ class TripletDataGenerator(tf.keras.utils.Sequence):
     """
 
     def __init__(self, triplets, batch_size=config.BATCH_SIZE,
-                 target_size=config.IMG_SIZE):
+                 target_size=config.IMG_SIZE, **kwargs):
+        super().__init__(**kwargs)
         self.triplets = triplets
         self.batch_size = batch_size
         self.target_size = target_size
@@ -133,7 +134,7 @@ class TripletDataGenerator(tf.keras.utils.Sequence):
                 negatives.append(np.zeros((*self.target_size, 3)))
 
         return (
-            [np.array(anchors), np.array(positives), np.array(negatives)],
+            (np.array(anchors), np.array(positives), np.array(negatives)),
             np.zeros(len(anchors))  # Dummy labels
         )
 
@@ -211,7 +212,7 @@ def build_siamese_model(base_model=None):
     embedding_network = build_embedding_network()
 
     # Three inputs
-    anchor_input = Input(shape=config.IMG_SHAPE, name="anchor_input")
+    anchor_input   = Input(shape=config.IMG_SHAPE, name="anchor_input")
     positive_input = Input(shape=config.IMG_SHAPE, name="positive_input")
     negative_input = Input(shape=config.IMG_SHAPE, name="negative_input")
 
@@ -342,7 +343,7 @@ def plot_siamese_loss(history, save_path=None):
     if save_path:
         plt.savefig(save_path, dpi=150, bbox_inches="tight")
         print(f"Siamese loss plot saved to {save_path}")
-    plt.show()
+    # plt.show() - Removed to prevent blocking headless execution
 
 
 def main():
