@@ -280,7 +280,7 @@ def main():
     subset_df = create_subset(df)
 
     # Step 5: Split and organize
-    split_and_organize(subset_df)
+    split_and_organize_images(subset_df)
 
     # Step 6: Validate
     validate_subset()

@@ -285,8 +285,8 @@ def main():
         
         if uploaded_file is not None:
             # Display query image with premium container
-            temp_query_path = os.path.join(config.DATA_DIR, "temp_query.jpg")
-            img_b64 = get_image_base64(temp_query_path)
+            file_bytes = uploaded_file.getvalue()
+            img_b64 = base64.b64encode(file_bytes).decode()
             st.markdown(f"""
             <div class="query-container">
                 <h4 style="margin-top:0; color:#cbd5e1; font-family:'Outfit';">Target Item</h4>
